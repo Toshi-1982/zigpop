@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- 名前は config.js の APP_NAME.ja と同じにする（tests で一致を確かめる） -->
+<title>ジグポン</title>
+<meta name="theme-color" content="#F3EEE4">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="ジグポン">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+
+  <!-- 画面1：タイトル -->
+  <section id="screen-title" class="screen active">
+    <div class="title-top">
+      <button id="btn-lang" class="btn btn-outline btn-lang" type="button"></button>
+    </div>
+    <h1 id="title-name" class="title-name"></h1>
+    <p class="tagline" data-i18n="tagline"></p>
+    <button id="btn-daily" class="btn btn-primary daily-btn" type="button">
+      <span class="daily-l1" data-i18n="daily"></span>
+      <span id="daily-l2" class="daily-l2"></span>
+      <span id="daily-l3" class="daily-l3" hidden></span>
+      <span id="daily-streak" class="daily-streak" hidden></span>
+    </button>
+    <!-- 今日の Hard／今日の Professional（主ボタンの下に横並び。仕様書6.3） -->
+    <div class="daily-more">
+      <button id="btn-daily-hard" class="btn btn-outline daily-one" type="button">
+        <span class="daily-one-l1" data-i18n="dailyHard"></span>
+        <span id="daily-hard-l2" class="daily-one-l2"></span>
+        <span id="daily-hard-streak" class="daily-one-streak" hidden></span>
+      </button>
+      <button id="btn-daily-pro" class="btn btn-outline daily-one" type="button">
+        <span id="daily-pro-l1" class="daily-one-l1" data-i18n="dailyPro"></span>
+        <span id="daily-pro-l2" class="daily-one-l2"></span>
+        <span id="daily-pro-streak" class="daily-one-streak" hidden></span>
+      </button>
+    </div>
+    <!-- Professional の試し A／B／C（テスト用。config.js の PRO_TRIAL が false なら出さない） -->
+    <div id="pro-trial" class="pro-trial" hidden>
+      <div class="pro-trial-row">
+        <span data-i18n="proTrial"></span>
+        <button type="button" class="btn btn-outline trial-btn" data-trial="A">A</button>
+        <button type="button" class="btn btn-outline trial-btn" data-trial="B">B</button>
+        <button type="button" class="btn btn-outline trial-btn" data-trial="C">C</button>
+      </div>
+      <p class="pro-trial-note" data-i18n="proTrialNote"></p>
+    </div>
+    <!-- モードのボタン。中身は game.js が CONFIG.FREE_MODES から作る -->
+    <div id="mode-buttons" class="mode-buttons"></div>
+    <button id="btn-help" class="btn-text" type="button" data-i18n="howTo"></button>
+    <p class="note" data-i18n="noSound"></p>
+  </section>
+
+  <!-- 作成中 -->
+  <section id="screen-loading" class="screen">
+    <p class="loading-text" data-i18n="making"></p>
+  </section>
+
+  <!-- 画面2：遊ぶ画面 -->
+  <section id="screen-game" class="screen">
+    <div class="topbar">
+      <button id="btn-back" class="btn btn-outline btn-back" type="button" data-i18n="back"></button>
+      <span id="game-label" class="game-label"></span>
+    </div>
+    <div class="hud">
+      <div class="hud-box"><b id="hud-taps">0/3</b><span data-i18n="taps"></span></div>
+      <div class="hud-box"><b id="hud-cleared">0/25</b><span data-i18n="cleared"></span></div>
+      <div class="hud-box"><b id="hud-chain">0</b><span data-i18n="maxChain"></span></div>
+      <div class="hud-box"><b id="hud-starts">0</b><span data-i18n="clearStarts"></span></div>
+    </div>
+    <!-- 補足の行（Hard：特別タイル／Professional：1手ごとに全部回る） -->
+    <div id="game-sub" class="game-sub" hidden></div>
+    <div id="board-wrap" class="board-wrap">
+      <canvas id="board" class="board"></canvas>
+      <!-- 1盤の結果（盤の下側に重ねる。仕様書6.4） -->
+      <div id="result" class="result" hidden>
+        <h2 id="result-head" class="result-head"></h2>
+        <p id="result-line" class="result-line"></p>
+        <div id="result-buttons" class="result-buttons"></div>
+      </div>
+    </div>
+    <p id="hint" class="hint" aria-live="polite"></p>
+  </section>
+
+  <!-- 画面4：今日の結果 -->
+  <section id="screen-final" class="screen">
+    <h2 id="final-title" class="final-title"></h2>
+    <div id="final-lines" class="final-lines"></div>
+    <p id="final-streak" class="final-streak"></p>
+    <pre id="share-text" class="share-text"></pre>
+    <div class="final-buttons">
+      <button id="btn-copy" class="btn btn-primary" type="button" data-i18n="copy"></button>
+      <button id="btn-share" class="btn btn-outline" type="button" data-i18n="share" hidden></button>
+    </div>
+    <p id="copy-msg" class="copy-msg" aria-live="polite"></p>
+    <button id="btn-final-title" class="btn btn-outline" type="button" data-i18n="toTitle"></button>
+    <p id="final-unsaved" class="unsaved" data-i18n="unsaved" hidden></p>
+  </section>
+</div>
+
+<!-- 画面3：遊び方（重ねて表示） -->
+<div id="help" class="overlay" hidden>
+  <div class="help-card" role="dialog" aria-modal="true" aria-labelledby="help-title">
+    <h2 id="help-title" class="help-title" data-i18n="helpTitle"></h2>
+    <canvas id="help-canvas" class="help-canvas" aria-hidden="true"></canvas>
+    <ol class="help-list">
+      <li data-i18n="help1"></li>
+      <li data-i18n="help2"></li>
+      <li data-i18n="help3"></li>
+      <li data-i18n="help4"></li>
+    </ol>
+    <p class="help-note" data-i18n="help5"></p>
+    <h3 class="help-sub" data-i18n="helpHardTitle"></h3>
+    <ul class="help-specials">
+      <li><span class="help-icon" data-icon="cross"></span><span data-i18n="helpCross"></span></li>
+      <li><span class="help-icon" data-icon="wall"></span><span data-i18n="helpWall"></span></li>
+      <li><span class="help-icon" data-icon="double"></span><span data-i18n="helpDouble"></span></li>
+      <li><span class="help-icon" data-icon="rotor"></span><span data-i18n="helpRotor"></span></li>
+    </ul>
+    <p class="help-note" data-i18n="helpPro"></p>
+    <button id="btn-help-close" class="btn btn-primary" type="button" data-i18n="closeHelp"></button>
+  </div>
+</div>
+
+<!-- セーフエリアの値を読むための非表示要素 -->
+<div id="safe-probe" class="safe-probe" aria-hidden="true"></div>
+
+<!-- file:// で直接開いても動くよう、モジュールではなく普通のスクリプトで順に読む -->
+<script src="config.js"></script>
+<script src="i18n.js"></script>
+<script src="logic.js"></script>
+<script src="store.js"></script>
+<script src="game.js"></script>
+</body>
+</html>
